@@ -30,7 +30,7 @@ import os
 import torch
 
 #=====START: ADDED FOR DISTRIBUTED======
-from distributed import init_distributed, apply_gradient_allreduce, reduce_tensor
+from dis_methods import init_distributed, apply_gradient_allreduce, reduce_tensor
 from torch.utils.data.distributed import DistributedSampler
 #=====END:   ADDED FOR DISTRIBUTED======
 
@@ -41,8 +41,9 @@ from mel2samp import Mel2Samp
 def load_checkpoint(checkpoint_path, model, optimizer):
     assert os.path.isfile(checkpoint_path)
     checkpoint_dict = torch.load(checkpoint_path, map_location='cpu')
-    iteration = checkpoint_dict['iteration']
-    optimizer.load_state_dict(checkpoint_dict['optimizer'])
+
+    iteration = 1#checkpoint_dict['iteration']
+    # optimizer.load_state_dict(checkpoint_dict['optimizer'])
     model_for_loading = checkpoint_dict['model']
     model.load_state_dict(model_for_loading.state_dict())
     print("Loaded checkpoint '{}' (iteration {})" .format(
@@ -91,6 +92,7 @@ def train(num_gpus, rank, group_name, output_directory, epochs, learning_rate,
         iteration += 1  # next iteration is iteration + 1
 
     trainset = Mel2Samp(**data_config)
+    print(f"TRAINSET: {trainset}")
     # =====START: ADDED FOR DISTRIBUTED======
     train_sampler = DistributedSampler(trainset) if num_gpus > 1 else None
     # =====END:   ADDED FOR DISTRIBUTED======
