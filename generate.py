@@ -9,8 +9,8 @@ from tacotron2.hparams import create_hparams
 from tacotron2.train import load_model as load_tacotron
 from tacotron2.text import text_to_sequence
 
-SAMPLING_RATE = 44100
-WAVEGLOW_MODEL = "models/me.pt"
+SAMPLING_RATE = 22050
+WAVEGLOW_MODEL = "models/mbailey_wg.pt"
 TACOTRON_MODEL = "models/tacotron2.pt"
 
 # Create our inference Tacotron model
@@ -31,11 +31,12 @@ for k in waveglow.convinv:
 text = "Waveglow is really awesome!"
 sequence = np.array(text_to_sequence(text, ['english_cleaners']))[None, :]
 sequence = torch.autograd.Variable(
-    torch.from_numpy(sequence)).cuda().long()
+    torch.from_numpy(sequence)
+).cuda().long()
 
 
 mel_outputs, mel_outputs_postnet, _, alignments = tacotron.inference(sequence)
 with torch.no_grad():
     audio = waveglow.infer(mel_outputs_postnet, sigma=0.666)
 audio_numpy = audio[0].data.cpu().numpy()
-write("audio.wav", 22050, audio_numpy)
+write("audio.wav", SAMPLING_RATE, audio_numpy)
